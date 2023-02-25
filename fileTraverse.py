@@ -1,45 +1,42 @@
 import os
+import os.path as OP
 import csv
+import time
 
-def setUp(outputFileName,directory):
-    if outputFileName[-4:] != '.txt':
-        outputFileName += ".txt"
-
+def setUp(outputFilePath,rootDirectory, batch):
+    tm = time.localtime()
+    outputFile = "Output_{}_{}_{}H{}M{}s.csv".format(tm[1], tm[2], tm[3], tm[4], tm[5])
     try:
-        os.chdir(directory)
-    except:
-        print("Could not change directory")
-        print(directory)
-        return
-
-    try:
-        with open(outputFileName,"w", newline= '',encoding='utf-8') as file:
-            csvWriter = csv.writer(file)
-
-            os.chdir(directory)
-            printFilesCSV(csvWriter,0)
+        with open(OP.join(outputFilePath,outputFile),"w", newline= '',encoding='utf-8') as outputfile:
+            csvWriter = csv.writer(outputfile)
+            for i in range(len(batch)):
+                print(batch[i:i+5])
+            for folder in batch:
+                printFilesCSV(csvWriter,0,OP.join(rootDirectory,folder))
             #printFilesTree(file,0)
             
     except Exception as e:
         print(e)
 
-def printFilesCSV(outputFile, level):
-    
+def printFilesCSV(outputFile, level,path):
+
     folders = list()
     files = list()
-    for value in os.listdir():
-        if os.path.isdir(value):
+    for value in os.listdir(path):
+        if OP.isdir(value):
             folders.append(value)
         elif value.lower().endswith(".py"):
             files.append(value)
 
     for file in files:
-        outputFile.writerow([os.getcwd(),file])
+        outputFile.writerow([path,file])
 
     for folder in folders:
-        os.chdir(os.getcwd() + "\\" + folder)
-        printFilesCSV(outputFile, level + 1)
-        os.chdir('..')
+        if level == 0:
+            print(folder)
+
+        printFilesCSV(outputFile, level + 1,OP.join(path,folder))
+
 
 def printFilesTree(outputFile,level):
 
